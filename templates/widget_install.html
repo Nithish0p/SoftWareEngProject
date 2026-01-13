@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .setup-container {
+        max-width: 800px; margin: 0 auto;
+        color: #e0e0e0;
+        padding-bottom: 50px;
+    }
+    .hero-section {
+        background: linear-gradient(135deg, #1f2530 0%, #141820 100%);
+        border-radius: 20px; padding: 40px; margin-bottom: 30px;
+        text-align: center; border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .download-btn {
+        display: inline-block; background: #4BC0C0; color: #000;
+        padding: 15px 40px; border-radius: 50px; font-weight: bold;
+        font-size: 18px; text-decoration: none; margin-top: 20px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(75, 192, 192, 0.4);
+    }
+    .step-card {
+        background: rgba(255,255,255,0.03); border-radius: 15px;
+        padding: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);
+        display: flex; align-items: flex-start; gap: 20px;
+    }
+    .step-num {
+        background: #2c7df0; width: 35px; height: 35px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: bold; flex-shrink: 0; box-shadow: 0 0 10px rgba(44, 125, 240, 0.3);
+    }
+    /* UPDATED: Image container */
+    .step-img-wrapper {
+        width: 100%; margin-top: 15px;
+        border-radius: 10px; overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .step-img {
+        width: 100%; height: auto; display: block;
+    }
+    .pin-warning {
+        background: rgba(255, 193, 7, 0.15); border: 1px solid #ffc107;
+        color: #ffc107; padding: 15px; border-radius: 10px;
+        margin-top: 20px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .pin-good {
+        background: rgba(40, 167, 69, 0.15); border: 1px solid #28a745;
+        color: #28a745; padding: 15px; border-radius: 10px;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="page-title">Mobile Widget Setup</div>
+
+<div class="setup-container">
+
+    <div class="hero-section">
+        <h1>CurrencyX Quick Spend</h1>
+        <p style="opacity: 0.7; margin-bottom: 20px; font-size: 16px;">
+            The fastest way to track expenses. Add transactions instantly from your Android home screen, fully synced with your dashboard.
+        </p>
+        
+        <a href="{{ url_for('static', filename='downloads/currencyx-widget.apk') }}" class="download-btn" download>
+            📥 Download APK (v1.0)
+        </a>
+
+        {% if pin == '0000' %}
+        <div class="pin-warning">
+            <div>
+                <strong>⚠️ Security Alert: Default PIN Active</strong><br>
+                Your widget PIN is set to default <code>0000</code>. It is highly recommended to change it.
+            </div>
+            <a href="{{ url_for('profile') }}" style="color: #fff; text-decoration: underline; margin-left: 15px; white-space: nowrap;">Change Now</a>
+        </div>
+        {% else %}
+        <div class="pin-good">
+            <strong>✅ Secure PIN Active</strong><br>
+            Your widget is protected with your custom 4-digit PIN.
+        </div>
+        {% endif %}
+    </div>
+
+    <h3 style="margin-bottom: 25px;">Installation & Usage Guide</h3>
+
+    <div class="step-card">
+        <div class="step-num">1</div>
+        <div style="width: 100%">
+            <h4>Download & Install</h4>
+            <p style="opacity: 0.7; font-size: 14px;">
+                Download the APK to your phone. Tap to install. Android may ask to allow "Install from Unknown Sources"—this is normal for sideloaded apps.
+            </p>
+            <div class="step-img-wrapper">
+                <img src="{{ url_for('static', filename='guide/1.png') }}" class="step-img" alt="Install Step">
+            </div>
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-num">2</div>
+        <div style="width: 100%">
+            <h4>Wake Up the App (Crucial)</h4>
+            <p style="opacity: 0.7; font-size: 14px;">
+                Once installed, open the "CurrencyXWidget" app from your app drawer <strong>once</strong>. You will see a "Widget Loaded" toast message. This registers it with the system.
+            </p>
+            <div class="step-img-wrapper">
+                <img src="{{ url_for('static', filename='guide/2.png') }}" class="step-img" alt="Wake Up Step">
+            </div>
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-num">3</div>
+        <div style="width: 100%">
+            <h4>Add to Home Screen</h4>
+            <p style="opacity: 0.7; font-size: 14px;">
+                Long-press on your home screen wallpaper -> tap <strong>Widgets</strong> -> find <strong>CurrencyX</strong> -> drag it onto your screen.
+            </p>
+            <div class="step-img-wrapper">
+                <img src="{{ url_for('static', filename='guide/3.png') }}" class="step-img" alt="Add Widget Step">
+            </div>
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-num">4</div>
+        <div style="width: 100%">
+            <h4>Unlock the Widget</h4>
+            <p style="opacity: 0.7; font-size: 14px;">
+                The widget stays locked by default. Enter your 4-digit security PIN (currently: <code>{{ pin }}</code>) and tap <strong>UNLOCK</strong> to access the funds.
+            </p>
+            <div class="step-img-wrapper">
+                <img src="{{ url_for('static', filename='guide/4.png') }}" class="step-img" alt="Unlock Step">
+            </div>
+        </div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-num">5</div>
+        <div style="width: 100%">
+            <h4>Quick Spend</h4>
+            <p style="opacity: 0.7; font-size: 14px;">
+                Tap the amount pills (e.g., +10, +50) to build up the total sum. Tap <strong>SEND</strong> to instantly log the expense.
+            </p>
+            <div class="step-img-wrapper">
+                <img src="{{ url_for('static', filename='guide/5.png') }}" class="step-img" alt="Spend Step">
+            </div>
+        </div>
+    </div>
+
+    <div class="step-card" style="border-color: rgba(75, 192, 192, 0.3);">
+        <div class="step-num" style="background: #4BC0C0; color: #000;">6</div>
+        <div style="width: 100%">
+            <h4>Instant Sync</h4>
+            <p style="opacity: 0.7; font-size: 14px;">
+                Like magic, the transaction appears instantly on your dashboard history under the <strong>"Quick"</strong> category. No refresh needed.
+            </p>
+            <div class="step-img-wrapper" style="border: 2px solid #4BC0C0;">
+                <img src="{{ url_for('static', filename='guide/6.png') }}" class="step-img" alt="Dashboard Sync Result">
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

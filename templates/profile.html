@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .profile-card {
+        max-width: 600px; margin: 0 auto;
+        background: rgba(0, 0, 0, 0.35); border-radius: 22px; padding: 40px;
+        backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .avatar-wrapper {
+        position: relative; width: 100px; height: 100px; margin: 0 auto 10px;
+        border-radius: 50%; overflow: hidden; cursor: pointer;
+        border: 2px solid #5aa8ff; box-shadow: 0 0 20px rgba(90, 168, 255, 0.3);
+    }
+    .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-placeholder {
+        width: 100%; height: 100%; background: #5aa8ff;
+        display: flex; align-items: center; justify-content: center; font-size: 40px;
+        color: white; font-weight: bold;
+    }
+    /* NEW: Explicit Upload Label */
+    .upload-label {
+        text-align: center; color: #5aa8ff; font-size: 13px; cursor: pointer;
+        margin-bottom: 20px; font-weight: 500;
+    }
+    .upload-label:hover { text-decoration: underline; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; opacity: 0.7; }
+    .form-group input, .form-group select {
+        width: 100%; padding: 12px; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;
+    }
+    .save-btn {
+        width: 100%; padding: 12px; background: #28a745; color: white;
+        border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;
+    }
+</style>
+
+<div class="page-title">My Profile</div>
+
+<div class="profile-card">
+    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+
+    <div class="avatar-wrapper" onclick="triggerUpload()">
+        {% if user.profile_pic %}
+            <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" class="avatar-img" id="previewImg">
+        {% else %}
+            <div class="avatar-placeholder" id="previewPlaceholder">{{ user.name[0] | upper }}</div>
+            <img src="" class="avatar-img" id="previewImg" style="display:none;">
+        {% endif %}
+    </div>
+    
+    <div class="upload-label" onclick="triggerUpload()">📷 Change Photo</div>
+
+    <form id="profileForm">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="pName" value="{{ user.name }}">
+        </div>
+        
+        <div class="form-group">
+            <label>Email (Cannot be changed)</label>
+            <input type="email" value="{{ user.email }}" disabled style="opacity:0.5; cursor:not-allowed;">
+        </div>
+
+        <div class="form-group">
+            <label>Preferred Base Currency</label>
+            <select id="pCurrency">
+                <option value="INR" {% if user.base_currency == 'INR' %}selected{% endif %}>INR (₹)</option>
+                <option value="USD" {% if user.base_currency == 'USD' %}selected{% endif %}>USD ($)</option>
+                <option value="EUR" {% if user.base_currency == 'EUR' %}selected{% endif %}>EUR (€)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Total Monthly Spending Limit (Global Budget)</label>
+            <input type="number" id="pLimit" value="{{ user.monthly_limit }}" placeholder="e.g. 20000">
+        </div>
+
+        <div class="form-group">
+            <label>Widget Security PIN (4 Digits)</label>
+            <input type="text" id="pPin" value="{{ user.widget_pin if user.widget_pin else '' }}" placeholder="Set a 4-digit PIN (e.g. 1234)" maxlength="4" pattern="\d*">
+            <small style="opacity: 0.5; font-size: 12px;">This PIN is required to unlock the Quick Spend Widget on your phone.</small>
+        </div>
+
+        <div class="form-group">
+            <label>Change Password (Optional)</label>
+            <input type="password" id="pPass" placeholder="Leave blank to keep current">
+        </div>
+
+        <button type="submit" class="save-btn">Save Changes</button>
+    </form>
+</div>
+
+<script>
+    // TRIGGER UPLOAD
+    function triggerUpload() {
+        document.getElementById('fileInput').click();
+    }
+
+    // PREVIEW LOGIC
+    const fileInput = document.getElementById('fileInput');
+    const previewImg = document.getElementById('previewImg');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+                if(previewPlaceholder) previewPlaceholder.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // SAVE LOGIC
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.querySelector('.save-btn');
+        btn.innerText = "Saving...";
+        
+        const formData = new FormData();
+        formData.append('name', document.getElementById('pName').value);
+        formData.append('currency', document.getElementById('pCurrency').value);
+        formData.append('password', document.getElementById('pPass').value);
+        formData.append('monthly_limit', document.getElementById('pLimit').value);
+        
+        // 🟢 NEW: Append the PIN to the data being sent
+        formData.append('widget_pin', document.getElementById('pPin').value);
+        
+        if (fileInput.files[0]) {
+            formData.append('file', fileInput.files[0]);
+        }
+
+        const res = await fetch('/api/update_profile', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if(res.ok) {
+            alert("Profile Updated Successfully!");
+            window.location.reload();
+        } else {
+            alert("Error updating profile");
+        }
+        btn.innerText = "Save Changes";
+    });
+</script>
+{% endblock %}

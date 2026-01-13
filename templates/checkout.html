@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>UPI Payment</title>
+
+<!-- Razorpay -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="{{ url_for('static', filename='checkout.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    .upi-page {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upi-card {
+        width: 100%;
+        max-width: 420px;
+        padding: 30px;
+    }
+
+    .upi-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    .upi-sub {
+        font-size: 13px;
+        opacity: 0.6;
+        margin-bottom: 25px;
+    }
+
+    .upi-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .cancel-btn {
+        background: rgba(255,255,255,0.08);
+    }
+
+    .upi-hint {
+        font-size: 11px;
+        opacity: 0.5;
+        margin-top: 15px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upi-page">
+    <div class="panel upi-card">
+
+        <div class="upi-title">Pay via UPI</div>
+        <div class="upi-sub">
+            Secure UPI payment powered by Razorpay
+        </div>
+
+        <!-- WHO did you pay -->
+        <input
+            id="receiver"
+            type="text"
+            placeholder="Paid to (e.g. Krishna)"
+            required
+        >
+
+        <!-- HOW MUCH -->
+        <input
+            id="amount"
+            type="number"
+            placeholder="Enter amount (₹)"
+            min="1"
+        >
+
+        <div class="upi-actions">
+            <button id="razorpay" class="gradient-btn">
+                Pay Now
+            </button>
+
+            <button
+                type="button"
+                class="gradient-btn cancel-btn"
+                onclick="window.location.href='/dashboard'">
+                Cancel
+            </button>
+        </div>
+
+        <div class="upi-hint">
+            Supports GPay, PhonePe, Paytm & all UPI apps
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

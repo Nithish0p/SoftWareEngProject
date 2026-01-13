@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CurrencyX</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='html.css') }}">
+    <style>
+        /* Specific overrides for Login */
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .box { width: 380px; margin: 0; padding: 50px 30px; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group input { padding-left: 15px; }
+        .extra-links { margin-top: 20px; display: flex; justify-content: space-between; font-size: 13px; }
+        .extra-links a { opacity: 0.7; transition: 0.3s; }
+        .extra-links a:hover { opacity: 1; color: #5aa8ff; }
+
+        /* ERROR MESSAGE BOX */
+        .alert-box {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b; color: #ff6b6b;
+            padding: 10px; border-radius: 8px; font-size: 13px;
+            margin-bottom: 20px; text-align: center;
+        }
+
+        /* CAPTCHA ROW */
+        .captcha-row { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+        .captcha-label { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; font-weight: bold; font-family: monospace; letter-spacing: 2px; color: #FFCE56; min-width: 120px; text-align: center; }
+        .captcha-input { margin-bottom: 0 !important; width: 80px !important; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="background-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="box">
+        <img src="{{ url_for('static', filename='logo.png') }}" style="width:60px; margin-bottom:10px;">
+        <h2 style="color:white; margin-bottom:5px;">Welcome Back</h2>
+        <p style="opacity:0.6; margin-top:0; margin-bottom:20px; font-size:14px;">Log in to your CurrencyX account</p>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert-box">
+                    {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <form action="/login" method="POST">
+            <div class="input-group">
+                <input type="email" name="email" placeholder="Email Address" required>
+            </div>
+            
+            <div class="input-group">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+
+            <div class="captcha-row">
+                <div class="captcha-label">{{ captcha_q }}</div>
+                <input type="number" name="captcha" class="captcha-input" placeholder="?" required>
+            </div>
+            
+            <button type="submit" class="gradient-btn">Log In</button>
+        </form>
+
+        <div class="extra-links">
+            <a href="/forgot-password">Forgot Password?</a>
+            <a href="/signup">Create Account</a>
+        </div>
+    </div>
+
+</body>
+</html>

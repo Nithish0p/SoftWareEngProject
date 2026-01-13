@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .otp-container {
+        display: flex; justify-content: center; align-items: center;
+        height: 80vh; flex-direction: column;
+    }
+    .otp-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 40px; border-radius: 20px;
+        text-align: center; width: 100%; max-width: 400px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    .otp-input {
+        background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.2);
+        padding: 15px; width: 100%; border-radius: 10px;
+        color: white; font-size: 24px; text-align: center; letter-spacing: 5px;
+        margin: 20px 0; outline: none;
+    }
+    .otp-input:focus { border-color: #4BC0C0; box-shadow: 0 0 10px rgba(75, 192, 192, 0.3); }
+    .demo-otp {
+        background: rgba(255, 193, 7, 0.1); color: #ffc107;
+        padding: 10px; border-radius: 8px; margin-bottom: 20px;
+        font-size: 14px; border: 1px dashed #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="otp-container">
+    <div class="otp-card">
+        <h2 style="margin-bottom: 10px;">Security Check 🔐</h2>
+        <p style="opacity: 0.7; font-size: 14px; margin-bottom: 20px;">
+            We've sent a 4-digit code to your registered device.
+        </p>
+
+        <div class="demo-otp">
+            DEV MODE: Your Code is <b>{{ otp }}</b>
+        </div>
+
+        <form method="POST" action="/otp">
+            <input type="text" name="otp" class="otp-input" placeholder="0000" maxlength="4" required autofocus autocomplete="off">
+            <button type="submit" class="gradient-btn" style="font-size: 16px;">Verify & Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

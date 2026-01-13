@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CurrencyX - The Future of Finance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='html.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* LANDING SPECIFIC OVERRIDES */
+        body { overflow-y: auto; height: auto; display: block; }
+        
+        /* NAVBAR */
+        nav {
+            padding: 20px 50px; display: flex; justify-content: space-between; align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background: rgba(15, 18, 24, 0.8); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .nav-logo { display: flex; gap: 10px; align-items: center; font-weight: bold; font-size: 20px; }
+        .nav-links a { color: white; opacity: 0.8; margin-left: 30px; transition: 0.3s; font-size: 14px; }
+        .nav-links a:hover { opacity: 1; color: #5aa8ff; }
+        .nav-cta {
+            padding: 8px 20px; background: rgba(255,255,255,0.1); border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2); transition: 0.3s;
+        }
+        .nav-cta:hover { background: #5aa8ff; border-color: #5aa8ff; }
+
+        /* HERO SECTION */
+        .hero {
+            padding: 180px 20px 100px; text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .hero h1 {
+            font-size: 64px; margin-bottom: 20px; line-height: 1.1; max-width: 900px;
+            background: linear-gradient(135deg, #fff 0%, #a5c9ff 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 20px; opacity: 0.7; max-width: 600px; margin-bottom: 40px; line-height: 1.6; }
+        
+        /* VIDEO CONTAINER */
+        .video-wrapper {
+            width: 80%; max-width: 1000px;
+            border-radius: 20px; overflow: hidden;
+            box-shadow: 0 20px 80px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 50px; position: relative;
+            background: #000;
+        }
+        video { width: 100%; display: block; }
+        
+        /* FEATURE GRID */
+        .section { padding: 100px 50px; max-width: 1200px; margin: 0 auto; }
+        .section-title { font-size: 32px; text-align: center; margin-bottom: 60px; }
+        .section-title span { color: #5aa8ff; }
+
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .card {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            padding: 40px; border-radius: 24px; transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.05); border-color: rgba(90, 168, 255, 0.3); }
+        .card i { font-size: 30px; color: #5aa8ff; margin-bottom: 20px; }
+        .card h3 { font-size: 20px; margin-bottom: 10px; }
+        .card p { font-size: 14px; opacity: 0.6; line-height: 1.6; }
+
+        /* TECH STACK (The Flex) */
+        .tech-stack {
+            display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
+            opacity: 0.5; margin-top: 40px;
+        }
+        .tech-item { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 500; }
+
+        /* CTA BUTTONS */
+        .cta-btn {
+            padding: 18px 45px; font-size: 18px; border-radius: 50px;
+            background: linear-gradient(90deg, #2c7df0, #5aa8ff); color: white;
+            box-shadow: 0 0 30px rgba(44, 125, 240, 0.4); font-weight: 600;
+            transition: 0.3s; display: inline-block;
+        }
+        .cta-btn:hover { transform: scale(1.05); box-shadow: 0 0 50px rgba(44, 125, 240, 0.6); }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.05); padding: 50px;
+            text-align: center; margin-top: 100px; font-size: 14px; opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <nav>
+        <div class="nav-logo">
+            <img src="{{ url_for('static', filename='logo.png') }}" style="width:30px;">
+            CurrencyX
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#tech">Technology</a>
+            <a href="/login">Log In</a>
+            <a href="/signup" class="nav-cta">Get Started</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Financial Intelligence <br>for the Global Citizen</h1>
+        <p>Stop guessing your expenses. Track, convert, and forecast your global spending with the power of Machine Learning.</p>
+        
+        <div style="margin-bottom: 20px;">
+            <a href="/signup" class="cta-btn">Create Free Account</a>
+        </div>
+        <p style="font-size:12px; opacity:0.4;">No credit card required • Open Source • Free Forever</p>
+
+        <div class="video-wrapper">
+            <video controls poster="{{ url_for('static', filename='bg.jpg') }}">
+                <source src="{{ url_for('static', filename='intro.mp4') }}" type="video/mp4">
+            </video>
+        </div>
+    </div>
+
+    <div id="features" class="section">
+        <div class="section-title">Everything you need to <br><span>Master Your Money</span></div>
+        <div class="grid-3">
+            <div class="card">
+                <i class="fas fa-magic"></i>
+                <h3>AI Categorization</h3>
+                <p>Our Hybrid ML engine (Logistic Regression) analyzes your descriptions and auto-tags them. "Starbucks" becomes "Food" instantly.</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-globe-americas"></i>
+                <h3>Real-Time FX</h3>
+                <p>Spend in JPY, USD, or GBP. We hit live currency APIs to normalize every transaction into your home currency.</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Predictive Analytics</h3>
+                <p>We don't just track the past. Our Linear Regression model forecasts your month-end total to warn you of overspending.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="background: rgba(0,0,0,0.2); border-radius: 30px;">
+        <div class="section-title">How It Works</div>
+        <div class="grid-3" style="text-align: center;">
+            <div>
+                <div style="font-size: 40px; color: #5aa8ff; margin-bottom: 20px;">1</div>
+                <h3>Add Expense</h3>
+                <p>Type what you bought. "Uber Ride in London".</p>
+            </div>
+            <div>
+                <div style="font-size: 40px; color: #5aa8ff; margin-bottom: 20px;">2</div>
+                <h3>AI Processing</h3>
+                <p>We detect the category (Transport) and convert GBP to INR.</p>
+            </div>
+            <div>
+                <div style="font-size: 40px; color: #5aa8ff; margin-bottom: 20px;">3</div>
+                <h3>Live Insights</h3>
+                <p>Your dashboard updates with trends, alerts, and forecasts.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="tech" class="section" style="padding-top: 0;">
+        <div class="section-title" style="font-size: 20px; opacity: 0.6; margin-bottom: 30px;">Engineered With</div>
+        <div class="tech-stack">
+            <div class="tech-item"><i class="fab fa-python"></i> Python Flask</div>
+            <div class="tech-item"><i class="fas fa-brain"></i> Scikit-Learn</div>
+            <div class="tech-item"><i class="fas fa-database"></i> SQLAlchemy</div>
+            <div class="tech-item"><i class="fab fa-js"></i> Chart.js</div>
+            <div class="tech-item"><i class="fas fa-lock"></i> Scrypt Security</div>
+        </div>
+    </div>
+
+    <footer>
+        CurrencyX Project © 2025<br>
+        Designed for Software Engineering Lab Capstone
+    </footer>
+
+</body>
+</html>

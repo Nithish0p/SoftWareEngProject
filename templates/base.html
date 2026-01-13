@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CurrencyX</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='html.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="background-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="logo-area">
+                <img src="{{ url_for('static', filename='logo.png') }}">
+                <h2>CurrencyX</h2>
+            </div>
+            
+            <a href="/dashboard" class="menu-item {% if page == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="/profile" class="menu-item {% if page == 'profile' %}active{% endif %}">
+                <i class="fas fa-user"></i> Profile
+            </a>
+
+            <a href="{{ url_for('widget_setup') }}" class="menu-item {% if page == 'widget' %}active{% endif %}">
+                <i class="fas fa-mobile-alt"></i> Mobile Widget 
+                <span style="font-size: 9px; background: #4BC0C0; color: #000; padding: 2px 5px; border-radius: 4px; margin-left: 8px; font-weight: bold;">NEW</span>
+            </a>
+
+            <a href="/terms" class="menu-item {% if page == 'terms' %}active{% endif %}">
+                <i class="fas fa-file-contract"></i> Terms of Service
+            </a>
+            
+            <div style="flex:1;"></div>
+            
+            <a href="/logout" class="menu-item" style="color: #ff6b6b;">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </a>
+        </div>
+
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

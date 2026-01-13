@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script> 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+<style>
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; }
+    .panel { background: rgba(0, 0, 0, 0.35); border-radius: 22px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 25px; position: relative; }
+    .stat-value { font-size: 32px; font-weight: 600; }
+    .tx-list { max-height: 400px; overflow-y: auto; }
+    .tx-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; }
+    .gradient-btn { width: 100%; padding: 10px; background: linear-gradient(90deg, #2c7df0, #5aa8ff); border: none; color: white; border-radius: 8px; cursor: pointer; }
+    input, select { width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; }
+    .action-btn { background: none; border: none; cursor: pointer; font-size: 16px; margin-left: 10px; opacity: 0.6; }
+    .edit-btn { color: #FFCE56; } .del-btn { color: #ff6b6b; }
+    .tx-cat { font-size: 11px; padding: 2px 6px; background: rgba(90, 168, 255, 0.2); border-radius: 4px; color: #5aa8ff; }
+    
+    /* CHART CONTROLS */
+    .chart-controls { display: flex; gap: 10px; margin-bottom: 15px; justify-content: center; }
+    .chart-btn { background: rgba(255,255,255,0.1); border: none; padding: 5px 15px; border-radius: 15px; color: white; cursor: pointer; font-size: 12px; transition: 0.2s; }
+    .chart-btn.active { background: #5aa8ff; box-shadow: 0 0 10px rgba(90, 168, 255, 0.5); }
+
+    /* HELP BUTTON & MODAL */
+    .help-btn { position: absolute; top: 30px; right: 30px; display:flex; gap:10px; }
+    .circle-btn { width: 40px; height: 40px; border-radius: 50%; background: #5aa8ff; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(90, 168, 255, 0.5); }
+    
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+    .modal-content { background: #141820; padding: 20px; border-radius: 20px; width: 80%; max-width: 800px; border: 1px solid rgba(255,255,255,0.1); }
+    .close-modal { float: right; font-size: 28px; cursor: pointer; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title">Dashboard</div>
+
+<button onclick="window.location.href='/upi'" class="gradient-btn" style="width: auto; margin-bottom: 20px; background: linear-gradient(90deg, #11998e, #38ef7d);">
+    💳 Pay via UPI
+</button>
+
+<div class="help-btn">
+    <button class="circle-btn" onclick="openVideo()" title="Watch Demo">▶</button>
+    <button class="circle-btn" onclick="startTour()" title="Replay Tour">?</button>
+</div>
+
+<div id="videoModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeVideo()">&times;</span>
+        <h2 style="margin-top:0;">Platform Demo</h2>
+        <video width="100%" controls>
+            <source src="{{ url_for('static', filename='intro.mp4') }}" type="video/mp4">
+        </video>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="panel" id="healthPanel" style="grid-column: 1 / -1; display:none; background: linear-gradient(90deg, rgba(44, 125, 240, 0.2), rgba(90, 168, 255, 0.1)); border: 1px solid #5aa8ff;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 style="margin-bottom:5px; color:white;">Monthly Allowance</h3>
+                <div style="font-size:14px; opacity:0.8;">
+                    Spent <b id="healthSpent">₹0</b> of <b id="healthLimit">₹0</b>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:12px; opacity:0.7; margin-bottom:5px;">UNIVERSAL SAFE SPEND</div>
+                <div style="font-size:24px; font-weight:bold; color:#4BC0C0;" id="healthSafe">₹0 / day</div>
+                <div style="font-size:11px; opacity:0.6;">for the next <span id="healthDays">0</span> days</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:20px;">
+        <div class="panel" id="step-add">
+            <h3 id="formTitle">Add Expense</h3>
+            <form id="expenseForm">
+                <input type="text" id="desc" placeholder="e.g. Starbucks" required>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="amount" placeholder="0.00" required>
+                    <select id="currency" style="width:100px;"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option><option>JPY</option></select>
+                </div>
+                <input type="text" id="predictedCat" placeholder="AI Category..." readonly style="color:#5aa8ff;">
+                <button type="submit" id="submitBtn" class="gradient-btn">Add Transaction</button>
+                <button type="button" id="cancelBtn" style="display:none; width:100%; margin-top:10px; background:rgba(255,255,255,0.1); border:none; padding:10px; color:white; border-radius:10px; cursor:pointer;">Cancel Edit</button>
+            </form>
+        </div>
+
+        <div class="panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0;">Set Budget</h3>
+                <button onclick="autoSetBudgets()" style="padding:5px 10px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); border:none; border-radius:8px; color:white; cursor:pointer; font-size:11px;">
+                    ✨ Auto-Set
+                </button>
+            </div>
+
+            <form id="budgetForm" style="display:flex; gap:5px;">
+                <select id="budgetCat">
+                    <option>Food</option><option>Transport</option><option>Shopping</option>
+                    <option>Entertainment</option><option>Health</option><option>Utilities</option>
+                </select>
+                <input type="number" id="budgetLimit" placeholder="Limit" style="width:80px;">
+                <button class="gradient-btn" style="width:auto;">Set</button>
+            </form>
+            <div id="budgetList" style="margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <div class="panel" id="step-chart">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0;">Overview</h3>
+            <div class="chart-controls">
+                <button class="chart-btn active" onclick="switchChart('doughnut')">Pie</button>
+                <button class="chart-btn" onclick="switchChart('line')">Trend</button>
+                <button class="chart-btn" onclick="switchChart('bar')">Bar</button>
+            </div>
+        </div>
+        
+        <div style="height:300px;"><canvas id="spendChart"></canvas></div>
+        
+        <div style="text-align:center; margin-top:20px;">
+            <div class="stat-value" id="totalSpent">₹0</div>
+            <div style="opacity:0.7">Total Spent (Converted)</div>
+        </div>
+        
+        <div class="forecast-box" id="forecastBox" style="display:none; margin-top:20px; padding:15px; background:rgba(44,125,240,0.1); border-radius:12px; border:1px solid rgba(44,125,240,0.3);">
+            <div style="font-size:12px; opacity:0.8; margin-bottom:5px;">🔮 AI Monthly Forecast</div>
+            <div id="forecastText">At this rate, you'll spend</div>
+            <div class="forecast-val" id="forecastVal" style="font-size:24px; font-weight:bold; color:#FFCE56;">₹0</div>
+            <div style="font-size:10px; opacity:0.6;">by the end of this month.</div>
+        </div>
+    </div>
+
+    <div class="panel" id="step-history">
+        <h3>History</h3>
+        <div class="tx-list" id="txList"></div>
+    </div>
+</div>
+
+<script>
+    // 🌍 GLOBAL CURRENCY SETTINGS (Passed from Flask)
+    // If currency is USD, Factor is ~0.011. If INR, Factor is 1.0.
+    const CURRENCY = "{{ currency_symbol }}";
+    const FACTOR = {{ conversion_factor }};
+
+    // Helper: Format Money (Convert from DB INR -> User Currency & Add Symbol)
+    function formatMoney(amountInINR) {
+        if (!amountInINR) return CURRENCY + " 0";
+        // Convert
+        let val = amountInINR * FACTOR;
+        // Round nicely (no decimals if > 100, else 2 decimals)
+        val = val > 100 ? Math.round(val) : val.toFixed(2);
+        return CURRENCY + " " + val;
+    }
+
+    // --- VIDEO MODAL LOGIC ---
+    function openVideo() { document.getElementById('videoModal').style.display = 'flex'; }
+    function closeVideo() { document.getElementById('videoModal').style.display = 'none'; }
+
+    // --- CHART LOGIC ---
+    let globalData = [];
+    let currentChartType = 'doughnut';
+    let myChart;
+
+    function switchChart(type) {
+        currentChartType = type;
+        document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        renderChart();
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('spendChart').getContext('2d');
+        if(myChart) myChart.destroy();
+
+        let labels = [];
+        let dataPoints = [];
+        let bgColors = [];
+        let config = {};
+
+        if (currentChartType === 'doughnut' || currentChartType === 'bar') {
+            const cats = {};
+            // 🟢 APPLY FACTOR TO CHART DATA (Convert INR to USD/EUR for the chart height)
+            globalData.forEach(tx => cats[tx.category] = (cats[tx.category]||0) + (tx.converted * FACTOR));
+            labels = Object.keys(cats);
+            dataPoints = Object.values(cats);
+            bgColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+            
+            config = {
+                type: currentChartType,
+                data: { labels: labels, datasets: [{ label: 'Spending', data: dataPoints, backgroundColor: bgColors, borderWidth: 0 }] },
+                options: { plugins: { legend: { display: currentChartType === 'doughnut', position: 'right', labels: { color: 'white' } } }, scales: { y: { display: currentChartType === 'bar', ticks: { color: 'white' } } } }
+            };
+        } 
+        else if (currentChartType === 'line') {
+            const dates = {};
+            globalData.sort((a,b) => new Date(a.date) - new Date(b.date));
+            globalData.forEach(tx => {
+                const d = tx.date.split(' ')[0]; 
+                // 🟢 APPLY FACTOR TO CHART DATA
+                dates[d] = (dates[d]||0) + (tx.converted * FACTOR);
+            });
+            labels = Object.keys(dates);
+            dataPoints = Object.values(dates);
+            
+            config = {
+                type: 'line',
+                data: { labels: labels, datasets: [{ label: 'Daily Spend', data: dataPoints, borderColor: '#5aa8ff', backgroundColor: 'rgba(90, 168, 255, 0.2)', fill: true, tension: 0.4 }] },
+                options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: 'white' } }, y: { ticks: { color: 'white' } } } }
+            };
+        }
+
+        myChart = new Chart(ctx, config);
+    }
+
+    // --- MAIN LOGIC ---
+    let editingId = null;
+    const inputs = { desc: document.getElementById('desc'), amount: document.getElementById('amount'), curr: document.getElementById('currency'), cat: document.getElementById('predictedCat') };
+    
+    inputs.desc.addEventListener('blur', async () => {
+        if(inputs.desc.value.length > 2 && !editingId) {
+            const res = await fetch('/api/predict_category', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({description: inputs.desc.value}) });
+            inputs.cat.value = (await res.json()).category;
+        }
+    });
+
+    async function loadData() {
+        const res = await fetch('/api/get_expenses');
+        globalData = await res.json();
+        
+        document.getElementById('txList').innerHTML = globalData.map(tx => `
+            <div class="tx-item">
+                <div><b>${tx.description}</b><br><span class="tx-cat">${tx.category}</span> <span style="font-size:10px; opacity:0.5;">${tx.date}</span></div>
+                <div style="text-align:right;">
+                    <b>-${tx.currency} ${tx.amount}</b><br>
+                    <span style="font-size:11px; opacity:0.6;">≈ ${formatMoney(tx.converted)}</span> 
+                    <div style="margin-top:5px;"><button class="action-btn edit-btn" onclick="startEdit(${tx.id}, '${tx.description}', ${tx.amount}, '${tx.currency}')">✏️</button><button class="action-btn del-btn" onclick="deleteTx(${tx.id})">🗑️</button></div>
+                </div>
+            </div>`).join('');
+        
+        // 🟢 UPDATE TOTAL SPENT (Sum INR -> Format to User Currency)
+        const total = globalData.reduce((sum, tx) => sum + tx.converted, 0);
+        document.getElementById('totalSpent').innerText = formatMoney(total);
+
+        renderChart();
+
+        // 🟢 UPDATE FORECAST (API returns INR, we format it)
+        const fRes = await fetch('/api/forecast');
+        const fData = await fRes.json();
+        if(fData.predicted_total > 0) {
+            document.getElementById('forecastBox').style.display = 'block';
+            document.getElementById('forecastVal').innerText = formatMoney(fData.predicted_total);
+        }
+
+        // 🟢 UPDATE BUDGETS (API returns INR, we format display to user currency)
+        const bRes = await fetch('/api/get_budgets');
+        const bData = await bRes.json();
+        
+        document.getElementById('budgetList').innerHTML = bData.map(b => `
+            <div style="margin-bottom:15px; padding:10px; background:rgba(255,255,255,0.03); border-radius:10px;">
+                <div style="font-size:13px; display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span style="font-weight:600;">${b.category}</span>
+                    <span style="opacity:0.8;">${formatMoney(b.spent)} / ${formatMoney(b.limit)}</span>
+                </div>
+                <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-bottom:8px;">
+                    <div style="width:${b.percentage}%; height:100%; 
+                         background:${b.alert ? '#ff6b6b' : 'linear-gradient(90deg, #2c7df0, #5aa8ff)'}; 
+                         border-radius:3px; transition: width 0.5s ease;">
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+                    <span style="color:${b.remaining > 0 ? '#4BC0C0' : '#ff6b6b'}; font-weight:bold;">
+                        ${b.remaining > 0 ? 'Remaining: ' + formatMoney(b.remaining) : 'Exceeded'}
+                    </span>
+                    <span style="opacity:0.7; font-style:italic;">${b.advice.replace('₹', CURRENCY)}</span>
+                </div>
+            </div>`).join('');
+
+        // 🟢 UPDATE FINANCIAL HEALTH
+        const hRes = await fetch('/api/get_financial_health');
+        const hData = await hRes.json();
+        
+        if (hData.status === 'active') {
+            document.getElementById('healthPanel').style.display = 'block';
+            document.getElementById('healthSpent').innerText = formatMoney(hData.spent);
+            document.getElementById('healthLimit').innerText = formatMoney(hData.limit);
+            document.getElementById('healthDays').innerText = hData.days_left;
+            
+            const safeElem = document.getElementById('healthSafe');
+            if(hData.remaining > 0) {
+                safeElem.innerText = formatMoney(hData.daily_safe) + ' / day';
+                safeElem.style.color = '#4BC0C0'; 
+            } else {
+                safeElem.innerText = '⚠️ STOP SPENDING';
+                safeElem.style.color = '#ff6b6b';
+            }
+        }
+    }
+
+    async function deleteTx(id) { if(confirm('Delete?')) { await fetch(`/api/delete_expense/${id}`, { method: 'DELETE' }); loadData(); }}
+    
+    window.startEdit = function(id, desc, amount, curr) {
+        editingId = id; inputs.desc.value = desc; inputs.amount.value = amount; inputs.curr.value = curr;
+        document.getElementById('submitBtn').innerText = "Update"; document.getElementById('cancelBtn').style.display = "block";
+        document.getElementById('step-add').scrollIntoView({ behavior: 'smooth' });
+    };
+    
+    document.getElementById('cancelBtn').addEventListener('click', () => { editingId = null; inputs.desc.value = ''; inputs.amount.value = ''; document.getElementById('submitBtn').innerText = "Add Transaction"; document.getElementById('cancelBtn').style.display = "none"; });
+
+    document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = { description: inputs.desc.value, amount: inputs.amount.value, currency: inputs.curr.value };
+        const url = editingId ? `/api/edit_expense/${editingId}` : '/api/add_expense';
+        const method = editingId ? 'PUT' : 'POST';
+        await fetch(url, { method: method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+        document.getElementById('cancelBtn').click(); loadData();
+    });
+
+    document.getElementById('budgetForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // 🟢 CONVERT INPUT TO BASE CURRENCY BEFORE SENDING (USD Input -> INR Storage)
+        const inputLimit = parseFloat(document.getElementById('budgetLimit').value);
+        const baseLimit = inputLimit / FACTOR; 
+
+        await fetch('/api/set_budget', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ category: document.getElementById('budgetCat').value, limit: baseLimit })});
+        loadData();
+    });
+
+    async function autoSetBudgets() {
+        if(!confirm("Are you sure? This will overwrite your current budgets based on your last 30 days of spending history.")) return;
+        const res = await fetch('/api/auto_generate_budgets', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) { alert(data.message); loadData(); } else { alert("Error: " + data.message); }
+    }
+
+    // --- TOUR ---
+    const driver = window.driver.js.driver;
+    const tour = driver({
+        showProgress: true,
+        steps: [
+            { popover: { title: '👋 Welcome to CurrencyX', description: 'Your AI-powered financial assistant.' } },
+            { element: '#healthPanel', popover: { title: '❤️ Financial Health', description: 'Tracks your ' + CURRENCY + ' daily limit.' } },
+            { element: '#step-add', popover: { title: '🧠 AI Entry', description: 'Just type "Starbucks".' } },
+            { element: '#budgetList', popover: { title: '✨ Auto-Set Budgets', description: 'Let AI plan your spending.' } },
+            { element: '#step-chart', popover: { title: '📊 Forecast', description: 'See your predicted month-end total.' } }
+        ]
+    });
+
+    window.startTour = function() { tour.drive(); };
+    if (!localStorage.getItem('tour_final_v2')) { setTimeout(startTour, 1500); localStorage.setItem('tour_final_v2', 'true'); }
+
+    loadData();
+</script>
+{% endblock %}
